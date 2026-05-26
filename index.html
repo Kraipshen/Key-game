@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMESHOP - Магазин цифровых игровых ключей</title>
+    <!-- Подключение Tailwind CSS для современного UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключение FontAwesome для игровых икон -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        /* Кастомизация скроллбара */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
+    <nav class="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <!-- Логотип -->
+            <a href="#" onclick="switchTab('catalog')" class="flex items-center gap-2 group">
+                <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-gamepad text-xl text-white"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">GAMESHOP</span>
+                    <span class="block text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Digital Keys</span>
+                </div>
+            </a>
+
+            <!-- Поисковая строка "Живого поиска" -->
+            <div class="relative w-full sm:max-w-md">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="live-search" oninput="handleSearch(this.value)" placeholder="Поиск игр по названию..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+                <button id="clear-search" onclick="clearSearchInput()" class="absolute inset-y-0 right-0 items-center pr-3 text-slate-400 hover:text-white hidden">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Разделы навигации -->
+            <div class="flex items-center gap-3 sm:gap-6">
+                <button onclick="switchTab('catalog')" id="nav-catalog" class="text-sm font-medium text-blue-400 hover:text-white transition-colors py-2 flex items-center gap-2">
+                    <i class="fa-solid fa-store"></i> Магазин
+                </button>
+                <button onclick="switchTab('library')" id="nav-library" class="text-sm font-medium text-slate-400 hover:text-white transition-colors py-2 flex items-center gap-2 relative">
+                    <i class="fa-solid fa-bookmark"></i> Моя Библиотека
+                    <span id="library-count" class="hidden absolute -top-1 -right-2 bg-blue-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
+                </button>
+                <button onclick="switchTab('cart')" id="nav-cart" class="text-sm font-medium text-slate-400 hover:text-white transition-colors py-2 flex items-center gap-2 relative">
+                    <i class="fa-solid fa-cart-shopping"></i> Корзина
+                    <span id="cart-badge" class="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
+                </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="text-sm font-medium text-slate-500 hover:text-red-400 transition-colors py-1.5 px-3 bg-slate-900 rounded-lg border border-slate-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-gear"></i> Админ
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ (ДИНАМИЧЕСКИЕ ВКЛАДКИ) -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
+
+        <!-- 1. ВКЛАДКА: КАТАЛОГ И МАГАЗИН -->
+        <section id="tab-catalog" class="space-y-6">
+            <!-- Баннер промо-акции / Предзаказ -->
+            <div class="relative bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-950/80 to-transparent z-10"></div>
+                <!-- Заглушка игрового постера на бэкграунде -->
+                <div class="absolute inset-0 opacity-25 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=1200');"></div>
+                <div class="relative z-20 px-6 py-12 md:p-12 max-w-lg space-y-4">
+                    <span class="bg-blue-600 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">Хит продаж 2026</span>
+                    <h2 class="text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">Cyber-Legend: Remastered</h2>
+                    <p class="text-slate-300 text-sm md:text-base leading-relaxed">Получите лицензионный ключ активации для Steam мгновенно после оплаты. Скидка 45% только на этой неделе!</p>
+                    <div class="flex items-center gap-4 pt-2">
+                        <div>
+                            <span class="text-slate-400 line-through text-sm">3 499 ₽</span>
+                            <span class="text-2xl font-black text-blue-400 block">1 899 ₽</span>
+                        </div>
+                        <button onclick="directPurchase(2)" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2 active:scale-95">
+                            <i class="fa-solid fa-bolt"></i> Купить сейчас
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сетка каталога с боковым фильтром -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                
+                <!-- Боковой блок фильтров (AJAX-имуляция) -->
+                <aside class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="font-bold text-slate-200 text-base"><i class="fa-solid fa-sliders text-blue-500 mr-2"></i>Фильтрация</h3>
+                        <button onclick="resetFilters()" class="text-xs text-slate-400 hover:text-blue-400 transition-colors">Сбросить всё</button>
+                    </div>
+
+                    <!-- Фильтр по платформам -->
+                    <div class="space-y-2.5">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Игровая Платформа</h4>
+                        <div class="space-y-1.5" id="filter-platforms">
+                            <!-- Генерация через JS -->
+                        </div>
+                    </div>
+
+                    <!-- Фильтр по жанрам -->
+                    <div class="space-y-2.5">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Жанр игры</h4>
+                        <div class="space-y-1.5" id="filter-genres">
+                            <!-- Генерация через JS -->
+                        </div>
+                    </div>
+
+                    <!-- Фильтр по диапазону цен -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Макс. Цена (₽)</h4>
+                            <span id="price-val" class="text-xs font-bold text-blue-400">5 000 ₽</span>
+                        </div>
+                        <input type="range" id="filter-price" min="200" max="5000" step="100" value="5000" oninput="applyFilters()" class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>200 ₽</span>
+                            <span>5 000 ₽</span>
+                        </div>
+                    </div>
+
+                    <!-- Сортировка -->
+                    <div class="space-y-2.5">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Сортировка</h4>
+                        <select id="filter-sort" onchange="applyFilters()" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:outline-none focus:border-blue-500">
+                            <option value="popular">По популярности</option>
+                            <option value="price-asc">Сначала дешевые</option>
+                            <option value="price-desc">Сначала дорогие</option>
+                            <option value="discount">С максимальной скидкой</option>
+                        </select>
+                    </div>
+                </aside>
+
+                <!-- Сетка вывода товаров -->
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs text-slate-400">Найдено игр в каталоге: <span id="games-count-badge" class="text-white font-bold bg-slate-800 px-2 py-0.5 rounded ml-1">0</span></p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" id="catalog-grid">
+                        <!-- Сюда асинхронно рендерятся карточки товаров из JS -->
+                    </div>
+
+                    <!-- Заглушка пустого результата -->
+                    <div id="catalog-empty" class="hidden text-center py-16 bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl">
+                        <i class="fa-solid fa-face-frown text-4xl text-slate-600 mb-3"></i>
+                        <p class="text-slate-400 text-sm font-medium">К сожалению, по вашему запросу игры не найдены.</p>
+                        <button onclick="resetFilters()" class="mt-4 bg-slate-800 hover:bg-slate-700 text-xs text-white px-4 py-2 rounded-lg transition-colors">Сбросить фильтры</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. ВКЛАДКА: ДЕТАЛИ ИГРЫ (КАРТОЧКА ТОВАРА) -->
+        <section id="tab-game-details" class="hidden space-y-6">
+            <button onclick="switchTab('catalog')" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-arrow-left"></i> Вернуться в каталог
+            </button>
+
+            <div id="game-details-content">
+                <!-- Контент генерируется динамически из JS -->
+            </div>
+        </section>
+
+        <!-- 3. ВКЛАДКА: КОРЗИНА -->
+        <section id="tab-cart" class="hidden max-w-3xl mx-auto space-y-6">
+            <h2 class="text-2xl font-extrabold text-white flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-blue-500"></i> Ваша корзина</h2>
+            
+            <div id="cart-container" class="space-y-4">
+                <!-- Рендерится из JS -->
+            </div>
+
+            <div id="cart-empty" class="text-center py-16 bg-slate-900 border border-slate-800 rounded-2xl">
+                <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-cart-plus text-2xl text-slate-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1">Корзина пуста</h3>
+                <p class="text-slate-400 text-sm max-w-sm mx-auto mb-6">Вы пока не добавили ни одной игры в корзину. Перейдите в каталог, чтобы сделать свой первый заказ.</p>
+                <button onclick="switchTab('catalog')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all">В каталог товаров</button>
+            </div>
+        </section>
+
+        <!-- 4. ВКЛАДКА: МОЯ ЦИФРОВАЯ БИБЛИОТЕКА -->
+        <section id="tab-library" class="hidden space-y-6">
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-blue-500"></i> Моя Цифровая Библиотека
+                </h2>
+                <p class="text-slate-400 text-xs mt-1">Здесь в зашифрованном и безопасном виде хранятся все купленные вами лицензионные ключи активации.</p>
+            </div>
+
+            <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Купленные игры и их ключи вставляются из JS -->
+            </div>
+
+            <!-- Заглушка пустой библиотеки -->
+            <div id="library-empty" class="text-center py-16 bg-slate-900/50 border border-slate-800 rounded-2xl">
+                <i class="fa-solid fa-folder-open text-4xl text-slate-700 mb-3"></i>
+                <h3 class="text-base font-bold text-slate-300">В вашей библиотеке пусто</h3>
+                <p class="text-slate-500 text-xs mt-1">После совершения покупки все ключи навсегда привязываются к вашему аккаунту и появляются здесь.</p>
+                <button onclick="switchTab('catalog')" class="mt-4 bg-slate-800 hover:bg-slate-700 text-xs text-white px-4 py-2.5 rounded-lg transition-all">Приобрести игры</button>
+            </div>
+        </section>
+
+        <!-- 5. ВКЛАДКА: ПАНЕЛЬ АДМИНИСТРАТОРА (КОНСОЛЬ МЕНЕДЖЕРА) -->
+        <section id="tab-admin" class="hidden space-y-6">
+            <div class="border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-red-500 flex items-center gap-2"><i class="fa-solid fa-user-gear"></i> Панель Администратора</h2>
+                    <p class="text-slate-400 text-xs mt-1">Панель управления складом, аналитикой продаж, добавлением игр и загрузкой ключей.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="resetToDefaults()" class="text-xs bg-slate-900 border border-slate-800 hover:border-red-500 text-slate-400 hover:text-white px-3 py-2 rounded-lg transition-colors">Сбросить данные к исходным</button>
+                </div>
+            </div>
+
+            <!-- Панель KPI-метрик (Бизнес-аналитика) -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><i class="fa-solid fa-wallet text-lg"></i></div>
+                    <div>
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase">Оборот продаж</span>
+                        <span id="kpi-revenue" class="text-lg font-black text-white">0 ₽</span>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                    <div>
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase">Заказы (Шт)</span>
+                        <span id="kpi-orders" class="text-lg font-black text-white">0</span>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500"><i class="fa-solid fa-key text-lg"></i></div>
+                    <div>
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase">Ключей на складе</span>
+                        <span id="kpi-keys" class="text-lg font-black text-white">0</span>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500"><i class="fa-solid fa-gamepad text-lg"></i></div>
+                    <div>
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase">Всего игр в каталоге</span>
+                        <span id="kpi-games" class="text-lg font-black text-white">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладки внутри Админки -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Левая сторона: Загрузка ключей на склад (Пакетный импорт) и Новая игра -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Форма 1: Пакетный импорт ключей -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+                        <h3 class="font-bold text-slate-200 text-sm border-b border-slate-800 pb-2"><i class="fa-solid fa-upload text-blue-500 mr-2"></i>Загрузка ключей (Склад)</h3>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Выберите игру:</label>
+                            <select id="admin-key-game-id" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5 focus:outline-none focus:border-blue-500">
+                                <!-- Опции из JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Ключи активации (каждый с новой строки):</label>
+                            <textarea id="admin-key-list" rows="5" placeholder="AAAAA-BBBBB-CCCCC&#10;DDDDD-EEEEE-FFFFF" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs font-mono p-2.5 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                            <p class="text-[10px] text-slate-500 mt-1">Один ключ — одна строка. Будут добавлены в БД зашифрованными.</p>
+                        </div>
+                        <button onclick="addKeysToWarehouse()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 rounded-lg transition-colors">Пополнить склад</button>
+                    </div>
+
+                    <!-- Форма 2: Создать новую игру -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+                        <h3 class="font-bold text-slate-200 text-sm border-b border-slate-800 pb-2"><i class="fa-solid fa-square-plus text-indigo-500 mr-2"></i>Добавить игру в каталог</h3>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Название игры:</label>
+                            <input type="text" id="admin-game-title" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs p-2.5 rounded-lg focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Платформа:</label>
+                                <select id="admin-game-platform" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5">
+                                    <option value="Steam">Steam</option>
+                                    <option value="Epic Games">Epic Games</option>
+                                    <option value="PlayStation">PlayStation</option>
+                                    <option value="Xbox">Xbox</option>
+                                    <option value="Battle.net">Battle.net</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Жанр:</label>
+                                <select id="admin-game-genre" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg p-2.5">
+                                    <option value="Action">Action</option>
+                                    <option value="RPG">RPG</option>
+                                    <option value="Shooter">Shooter</option>
+                                    <option value="Strategy">Strategy</option>
+                                    <option value="Simulator">Simulator</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Цена (₽):</label>
+                                <input type="number" id="admin-game-price" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs p-2.5 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Скидка (%):</label>
+                                <input type="number" id="admin-game-discount" value="0" min="0" max="95" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs p-2.5 rounded-lg">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Ссылка на постер / обложку (URL):</label>
+                            <input type="text" id="admin-game-image" placeholder="Оставьте пустым для автозаглушки" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs p-2.5 rounded-lg focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Краткое описание игры:</label>
+                            <textarea id="admin-game-desc" rows="3" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs p-2.5 rounded-lg focus:outline-none"></textarea>
+                        </div>
+                        <button onclick="createNewGameInCatalog()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-lg transition-colors">Внести в каталог</button>
+                    </div>
+                </div>
+
+                <!-- Правая сторона: Таблица игр и оперативное изменение цен -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+                        <h3 class="font-bold text-slate-200 text-sm border-b border-slate-800 pb-2"><i class="fa-solid fa-list-check text-purple-500 mr-2"></i>Управление ассортиментом склада</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-slate-400">
+                                        <th class="py-3 px-2">Игра</th>
+                                        <th class="py-3 px-2">Платформа / Жанр</th>
+                                        <th class="py-3 px-2">Цена</th>
+                                        <th class="py-3 px-2">Остаток ключей</th>
+                                        <th class="py-3 px-2 text-center">Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-games-list-body" class="divide-y divide-slate-800">
+                                    <!-- Строки генерируются из JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ИНТЕРАКТИВНОЕ ОКНО ПЛАТЕЖНОГО ШЛЮЗА (ИМИТАЦИЯ ЮKASSA / SECURE PAY) -->
+    <div id="payment-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <!-- Шапка платежного шлюза -->
+            <div class="bg-slate-950 p-6 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded bg-green-500/10 flex items-center justify-center text-green-500 font-black text-lg">Ю</div>
+                    <div>
+                        <span class="text-xs text-slate-400 block font-semibold leading-none">Платежный шлюз API</span>
+                        <span class="text-sm font-bold text-white">ЮKassa (Тестовый режим)</span>
+                    </div>
+                </div>
+                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Тело оплаты -->
+            <div class="p-6 space-y-5">
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest block mb-1">К оплате (получатель GameShop)</span>
+                    <span id="pay-modal-total" class="text-2xl font-black text-white">0 ₽</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Номер карты:</label>
+                        <div class="relative">
+                            <input type="text" id="pay-card-number" placeholder="4000 1234 5678 9010" maxlength="19" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm p-3 rounded-xl focus:outline-none focus:border-green-500 font-mono pl-10">
+                            <span class="absolute left-3.5 top-3.5 text-slate-500"><i class="fa-solid fa-credit-card"></i></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Срок действия:</label>
+                            <input type="text" id="pay-card-expiry" placeholder="12/28" maxlength="5" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm p-3 rounded-xl text-center focus:outline-none focus:border-green-500 font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">CVC/CVC2:</label>
+                            <input type="password" id="pay-card-cvc" placeholder="***" maxlength="3" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm p-3 rounded-xl text-center focus:outline-none focus:border-green-500 font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-500 text-center flex items-center justify-center gap-2 bg-slate-950/50 py-2 rounded-lg">
+                    <i class="fa-solid fa-lock text-green-500"></i> Данные зашифрованы по протоколу SSL 256-бит.
+                </div>
+
+                <button onclick="processSecurePayment()" id="btn-pay-action" class="w-full bg-green-600 hover:bg-green-500 text-white font-extrabold text-sm py-3.5 rounded-xl transition-all shadow-lg shadow-green-600/10 hover:shadow-green-500/20 active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i> Оплатить заказ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОКНО УСПЕШНОГО ЧЕКА И МГНОВЕННОЙ ВЫДАЧИ КЛЮЧЕЙ (SUCCESS INVOICE) -->
+    <div id="invoice-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-green-500/30 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <!-- Эффект конфетти / Сияния -->
+            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-green-400 via-blue-500 to-indigo-500"></div>
+            
+            <div class="p-6 md:p-8 space-y-6 text-center">
+                <!-- Значок успеха -->
+                <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center text-green-500 text-3xl mx-auto border border-green-500/20">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-black text-white leading-tight">Оплата завершена успешно!</h3>
+                    <p class="text-slate-400 text-xs mt-1">Транзакция по протоколу API мгновенного чекаута зарегистрирована.</p>
+                </div>
+
+                <!-- Контейнер с зашифрованными ключами -->
+                <div class="space-y-3 text-left">
+                    <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest block text-center">Ваши купленные ключи активации:</span>
+                    <div id="invoice-keys-container" class="space-y-3.5">
+                        <!-- Динамические блоки с ключами, поп-апом успеха и возможностью копирования -->
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-left text-xs space-y-2 text-slate-400">
+                    <p class="font-bold text-white mb-1"><i class="fa-solid fa-circle-info text-blue-500"></i> Как активировать ключ?</p>
+                    <ol class="list-decimal pl-4 space-y-1 text-slate-400">
+                        <li>Скопируйте полученный ключ с помощью кнопки.</li>
+                        <li>Запустите игровое приложение-клиент (Steam, Epic Games и др.).</li>
+                        <li>В меню выберите пункт "Активировать в..." и вставьте ключ.</li>
+                    </ol>
+                </div>
+
+                <button onclick="closeInvoiceAndRedirect()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs py-3.5 rounded-xl transition-colors">Перейти в Библиотеку для просмотра</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- КОМПОНЕНТ ПЛАВНЫХ УВЕДОМЛЕНИЙ (TOAST) -->
+    <div id="toast-wrapper" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
+
+    <!-- ПОДВАЛ МАГАЗИНА -->
+    <footer class="bg-slate-950 border-t border-slate-900 px-4 py-8 mt-12">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+                <div class="flex items-center gap-2 justify-center md:justify-start">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-gamepad text-white"></i></div>
+                    <span class="text-lg font-black tracking-wider text-white">GAMESHOP</span>
+                </div>
+                <p class="text-slate-400 text-xs mt-3 leading-relaxed">Прототип дипломного проекта интернет-магазина цифровой дистрибуции с автоматической выдачей ключей.</p>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Параметры разработки</h4>
+                <ul class="text-slate-400 text-xs space-y-2 mt-3">
+                    <li>Разработчик: Харчук Олег Юрьевич</li>
+                    <li>Научный руководитель: Репенецкая Л. И.</li>
+                    <li>ГАПОУ КК «ЛСПК», 2026 г.</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Информационная безопасность</h4>
+                <p class="text-slate-400 text-xs mt-3 leading-relaxed">Система использует защищенные алгоритмы шифрования для баз данных MySQL 8 и гарантирует 100% невосстановимость невыданных кодов в случае компрометации внешних сред.</p>
+            </div>
+        </div>
+        <div class="border-t border-slate-900 mt-8 pt-4 text-center text-[10px] text-slate-500">
+            &copy; 2026 GAMESHOP. Итоговая аттестационная работа. Все права защищены.
+        </div>
+    </footer>
+
+    <!-- СЦЕНАРИИ JS ДЛЯ ИНТЕРАКТИВНОСТИ И ЭМУЛЯЦИИ СКЛАДА -->
+    <script>
+        // Исходные (дефолтные) данные для базы данных
+        const INITIAL_GAMES = [
+            {
+                id: 1,
+                title: "Witcher 3: Wild Hunt - Complete Edition",
+                platform: "Steam",
+                genre: "RPG",
+                price: 1499,
+                discount: 30,
+                rating: 4.9,
+                popularity: 98,
+                image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=400",
+                description: "Культовая ролевая игра нового поколения, события которой разворачиваются в огромном открытом фэнтезийном мире. Вы — профессиональный охотник на монстров Геральт из Ривии, разыскивающий Дитя Предназначения."
+            },
+            {
+                id: 2,
+                title: "Cyberpunk 2077: Phantom Liberty",
+                platform: "Steam",
+                genre: "RPG",
+                price: 2999,
+                discount: 45,
+                rating: 4.8,
+                popularity: 120,
+                image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&q=80&w=400",
+                description: "Сюжетное дополнение, созданное в жанре шпионского триллера для Cyberpunk 2077. Вернитесь к роли наемника V и отправляйтесь на службу Новым Соединенным Штатам Америки."
+            },
+            {
+                id: 3,
+                title: "Counter-Strike 2 Prime Status Upgrade",
+                platform: "Steam",
+                genre: "Shooter",
+                price: 1550,
+                discount: 10,
+                rating: 4.6,
+                popularity: 150,
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=400",
+                description: "Prime Status Upgrade — это официальный статус учетной записи CS2, открывающий доступ к соревновательным режимам, получению уникальных сувениров и еженедельным наградам."
+            },
+            {
+                id: 4,
+                title: "EA SPORTS FC 24",
+                platform: "EA App",
+                genre: "Simulator",
+                price: 4999,
+                discount: 50,
+                rating: 4.5,
+                popularity: 85,
+                image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=400",
+                description: "Новая эра всемирной игры. Вас ждет непревзойденная реалистичность в каждом матче с технологиями HyperMotionV и игровыми стилями от компании Opta."
+            },
+            {
+                id: 5,
+                title: "Grand Theft Auto V: Premium Edition",
+                platform: "Epic Games",
+                genre: "Action",
+                price: 1899,
+                discount: 60,
+                rating: 4.9,
+                popularity: 200,
+                image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&q=80&w=400",
+                description: "Когда молодой уличный жулик, отставной грабитель банков и опасный для общества психопат оказываются втянуты в разборки с самыми пугающими деятелями криминального мира."
+            },
+            {
+                id: 6,
+                title: "Elden Ring: Shadow of the Erdtree",
+                platform: "Steam",
+                genre: "RPG",
+                price: 3599,
+                discount: 0,
+                rating: 5.0,
+                popularity: 180,
+                image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=400",
+                description: "Долгожданное масштабное сюжетное расширение для признанной критиками хардкорной ролевой игры Elden Ring в мрачном мире Междуземья от Хидетаки Миядзаки."
+            }
+        ];
+
+        // Первоначальный склад ключей
+        const INITIAL_WAREHOUSE = {
+            1: ["WITCH-STEAM-99FF1-AACC3", "WITCH-STEAM-88KK2-BBDD4", "WITCH-STEAM-77LL3-CCEE5"],
+            2: ["CYBER-STEAM-11AA1-BBBB2", "CYBER-STEAM-22CC2-DDDD3", "CYBER-STEAM-33EE3-FFFF4"],
+            3: ["CS2PR-STEAM-44GG4-HHHH5", "CS2PR-STEAM-55II5-JJJJ6"],
+            4: ["FC24X-EAPLAY-66KK6-LLLL7", "FC24X-EAPLAY-77MM7-NNNN8"],
+            5: ["GTAVP-EPICG-88OO8-PPPP9", "GTAVP-EPICG-99QQ9-RRRR0"],
+            6: ["ELDEN-STEAM-00SS0-TTTT1", "ELDEN-STEAM-11UU1-VVVV2"]
+        };
+
+        // Состояние приложения (State)
+        let state = {
+            games: [],
+            warehouse: {},
+            cart: [],
+            library: [],
+            kpi: {
+                revenue: 0,
+                orders: 0
+            },
+            currentTab: 'catalog',
+            filters: {
+                platform: 'all',
+                genre: 'all',
+                maxPrice: 5000,
+                sort: 'popular',
+                search: ''
+            }
+        };
+
+        // Запуск при старте
+        window.onload = function() {
+            loadState();
+            renderFilters();
+            applyFilters();
+            updateKPIs();
+            updateCartBadge();
+        };
+
+        // Загрузка состояния из localStorage
+        function loadState() {
+            const savedGames = localStorage.getItem('games_store_games');
+            const savedWarehouse = localStorage.getItem('games_store_warehouse');
+            const savedCart = localStorage.getItem('games_store_cart');
+            const savedLibrary = localStorage.getItem('games_store_library');
+            const savedKPI = localStorage.getItem('games_store_kpi');
+
+            state.games = savedGames ? JSON.parse(savedGames) : [...INITIAL_GAMES];
+            state.warehouse = savedWarehouse ? JSON.parse(savedWarehouse) : {...INITIAL_WAREHOUSE};
+            state.cart = savedCart ? JSON.parse(savedCart) : [];
+            state.library = savedLibrary ? JSON.parse(savedLibrary) : [];
+            state.kpi = savedKPI ? JSON.parse(savedKPI) : { revenue: 0, orders: 0 };
+        }
+
+        // Сохранение текущего состояния в localStorage
+        function saveStateToStorage() {
+            localStorage.setItem('games_store_games', JSON.stringify(state.games));
+            localStorage.setItem('games_store_warehouse', JSON.stringify(state.warehouse));
+            localStorage.setItem('games_store_cart', JSON.stringify(state.cart));
+            localStorage.setItem('games_store_library', JSON.stringify(state.library));
+            localStorage.setItem('games_store_kpi', JSON.stringify(state.kpi));
+        }
+
+        // Очистка данных
+        function resetToDefaults() {
+            localStorage.clear();
+            loadState();
+            renderFilters();
+            applyFilters();
+            updateKPIs();
+            updateCartBadge();
+            showToast("База данных успешно сброшена к дефолтному состоянию!");
+        }
+
+        // Функция переключения вкладок
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+            
+            // Настройка видимости секций
+            const tabs = ['catalog', 'game-details', 'cart', 'library', 'admin'];
+            tabs.forEach(t => {
+                const element = document.getElementById(`tab-${t}`);
+                if (element) {
+                    if (t === tabId) element.classList.remove('hidden');
+                    else element.classList.add('hidden');
+                }
+            });
+
+            // Настройка классов навигации
+            const navs = ['catalog', 'library', 'cart', 'admin'];
+            navs.forEach(n => {
+                const btn = document.getElementById(`nav-${n}`);
+                if (btn) {
+                    if (n === tabId) {
+                        btn.className = "text-sm font-bold text-blue-400 border-b-2 border-blue-500 py-2 flex items-center gap-2";
+                    } else if (n === 'admin') {
+                        btn.className = "text-sm font-medium text-slate-500 hover:text-red-400 transition-colors py-1.5 px-3 bg-slate-900 rounded-lg border border-slate-800 flex items-center gap-1.5";
+                    } else {
+                        btn.className = "text-sm font-medium text-slate-400 hover:text-white transition-colors py-2 flex items-center gap-2 relative";
+                    }
+                }
+            });
+
+            // Дополнительный вызов рендеров при входе на вкладку
+            if (tabId === 'cart') renderCart();
+            if (tabId === 'library') renderLibrary();
+            if (tabId === 'admin') renderAdmin();
+        }
+
+        // Рендер фильтров
+        function renderFilters() {
+            // Извлечение уникальных платформ и жанров
+            const platforms = ['all', ...new Set(state.games.map(g => g.platform))];
+            const genres = ['all', ...new Set(state.games.map(g => g.genre))];
+
+            // Наполнение чекбоксов платформ
+            const platContainer = document.getElementById('filter-platforms');
+            platContainer.innerHTML = platforms.map(p => `
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 hover:text-white py-1">
+                    <input type="radio" name="platform-filter" value="${p}" ${state.filters.platform === p ? 'checked' : ''} onchange="setFilter('platform', '${p}')" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-0">
+                    <span>${p === 'all' ? 'Все платформы' : p}</span>
+                </label>
+            `).join('');
+
+            // Наполнение чекбоксов жанров
+            const genContainer = document.getElementById('filter-genres');
+            genContainer.innerHTML = genres.map(g => `
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 hover:text-white py-1">
+                    <input type="radio" name="genre-filter" value="${g}" ${state.filters.genre === g ? 'checked' : ''} onchange="setFilter('genre', '${g}')" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-0">
+                    <span>${g === 'all' ? 'Все жанры' : g}</span>
+                </label>
+            `).join('');
+        }
+
+        // Установка одного фильтра
+        function setFilter(key, value) {
+            state.filters[key] = value;
+            applyFilters();
+        }
+
+        function resetFilters() {
+            state.filters = {
+                platform: 'all',
+                genre: 'all',
+                maxPrice: 5000,
+                sort: 'popular',
+                search: ''
+            };
+            document.getElementById('live-search').value = '';
+            document.getElementById('filter-price').value = 5000;
+            document.getElementById('filter-sort').value = 'popular';
+            renderFilters();
+            applyFilters();
+        }
+
+        // Поиск
+        function handleSearch(val) {
+            state.filters.search = val.trim().toLowerCase();
+            const clearBtn = document.getElementById('clear-search');
+            if (val.length > 0) clearBtn.classList.remove('hidden');
+            else clearBtn.classList.add('hidden');
+            applyFilters();
+        }
+
+        function clearSearchInput() {
+            document.getElementById('live-search').value = '';
+            document.getElementById('clear-search').classList.add('hidden');
+            state.filters.search = '';
+            applyFilters();
+        }
+
+        // Применение AJAX-фильтрации (внутренний рендер каталога)
+        function applyFilters() {
+            const priceValInput = document.getElementById('filter-price');
+            const priceBadge = document.getElementById('price-val');
+            state.filters.maxPrice = parseFloat(priceValInput.value);
+            priceBadge.textContent = `${state.filters.maxPrice} ₽`;
+
+            // Фильтрация массива
+            let result = state.games.filter(game => {
+                // Фильтр по платформе
+                if (state.filters.platform !== 'all' && game.platform !== state.filters.platform) return false;
+                // Фильтр по жанру
+                if (state.filters.genre !== 'all' && game.genre !== state.filters.genre) return false;
+                // Фильтр по цене с учетом скидки
+                const currentPrice = Math.round(game.price * (1 - game.discount / 100));
+                if (currentPrice > state.filters.maxPrice) return false;
+                // Поиск по названию
+                if (state.filters.search !== '' && !game.title.toLowerCase().includes(state.filters.search)) return false;
+                
+                return true;
+            });
+
+            // Сортировка
+            if (state.filters.sort === 'price-asc') {
+                result.sort((a,b) => (a.price*(1-a.discount/100)) - (b.price*(1-b.discount/100)));
+            } else if (state.filters.sort === 'price-desc') {
+                result.sort((a,b) => (b.price*(1-b.discount/100)) - (a.price*(1-a.discount/100)));
+            } else if (state.filters.sort === 'discount') {
+                result.sort((a,b) => b.discount - a.discount);
+            } else {
+                // popular
+                result.sort((a,b) => b.popularity - a.popularity);
+            }
+
+            renderCatalog(result);
+        }
+
+        // Отрисовка сетки игр в каталоге
+        function renderCatalog(games) {
+            const grid = document.getElementById('catalog-grid');
+            const emptyBlock = document.getElementById('catalog-empty');
+            const countBadge = document.getElementById('games-count-badge');
+
+            countBadge.textContent = games.length;
+
+            if (games.length === 0) {
+                grid.classList.add('hidden');
+                emptyBlock.classList.remove('hidden');
+                return;
+            }
+
+            grid.classList.remove('hidden');
+            emptyBlock.classList.add('hidden');
+
+            grid.innerHTML = games.map(game => {
+                const discountedPrice = Math.round(game.price * (1 - game.discount / 100));
+                const inCart = state.cart.some(item => item.id === game.id);
+                const isOutOfStock = !state.warehouse[game.id] || state.warehouse[game.id].length === 0;
+
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 hover:shadow-xl hover:shadow-blue-500/5 transition-all group flex flex-col justify-between h-full">
+                        <div class="relative cursor-pointer" onclick="showGameDetails(${game.id})">
+                            <!-- Изображение игры -->
+                            <img src="${game.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400'}" alt="${game.title}" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                            <!-- Накладка платформы -->
+                            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur text-[10px] font-bold px-2 py-1 rounded text-slate-300 uppercase tracking-widest border border-slate-800 flex items-center gap-1">
+                                ${getPlatformIcon(game.platform)} ${game.platform}
+                            </span>
+                            <!-- Скидка -->
+                            ${game.discount > 0 ? `
+                                <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded-lg">
+                                    -${game.discount}%
+                                </span>
+                            ` : ''}
+                        </div>
+
+                        <!-- Описание и цена -->
+                        <div class="p-4 space-y-3 flex-grow flex flex-col justify-between">
+                            <div class="space-y-1">
+                                <span class="text-[10px] text-blue-500 font-bold uppercase">${game.genre}</span>
+                                <h3 onclick="showGameDetails(${game.id})" class="text-sm font-extrabold text-white cursor-pointer hover:text-blue-400 line-clamp-1 transition-colors">${game.title}</h3>
+                            </div>
+
+                            <div class="flex items-center justify-between border-t border-slate-800/60 pt-3 mt-2">
+                                <div>
+                                    ${game.discount > 0 ? `
+                                        <span class="text-[10px] text-slate-400 line-through block leading-none mb-1">${game.price} ₽</span>
+                                    ` : ''}
+                                    <span class="text-base font-black text-white">${discountedPrice} ₽</span>
+                                </div>
+
+                                <div class="flex gap-2">
+                                    ${isOutOfStock ? `
+                                        <span class="text-[10px] font-bold text-red-500 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/20 uppercase">Нет ключей</span>
+                                    ` : `
+                                        <button onclick="addToCart(${game.id})" class="p-2.5 rounded-lg text-xs font-bold ${inCart ? 'bg-slate-800 text-green-400' : 'bg-blue-600 hover:bg-blue-500 text-white'} transition-all active:scale-95" title="${inCart ? 'В корзине' : 'Добавить в корзину'}">
+                                            <i class="fa-solid ${inCart ? 'fa-cart-check' : 'fa-cart-plus'}"></i>
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Карточка подробного просмотра
+        function showGameDetails(gameId) {
+            const game = state.games.find(g => g.id === gameId);
+            if (!game) return;
+
+            switchTab('game-details');
+
+            const discountedPrice = Math.round(game.price * (1 - game.discount / 100));
+            const inCart = state.cart.some(item => item.id === game.id);
+            const keyCount = state.warehouse[game.id] ? state.warehouse[game.id].length : 0;
+            const isOutOfStock = keyCount === 0;
+
+            const content = document.getElementById('game-details-content');
+            content.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8">
+                    <!-- Постер -->
+                    <div class="space-y-4">
+                        <img src="${game.image}" alt="${game.title}" class="w-full h-80 object-cover rounded-2xl border border-slate-800">
+                        <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs">
+                            <span class="text-slate-400">Наличие на складе:</span>
+                            <span class="font-extrabold ${keyCount > 0 ? 'text-green-500' : 'text-red-500'}">
+                                ${keyCount > 0 ? `${keyCount} лицензионных ключей` : 'Ключи закончились'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Информация -->
+                    <div class="lg:col-span-2 flex flex-col justify-between space-y-6">
+                        <div class="space-y-4">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">${game.platform}</span>
+                                <span class="bg-slate-800 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">${game.genre}</span>
+                            </div>
+
+                            <h2 class="text-2xl md:text-3xl font-black text-white leading-tight">${game.title}</h2>
+                            <p class="text-slate-300 text-sm leading-relaxed">${game.description}</p>
+
+                            <!-- Системные требования -->
+                            <div class="bg-slate-950/50 rounded-xl p-4 border border-slate-800/80 space-y-2">
+                                <h4 class="text-xs font-bold uppercase text-slate-400">Системные требования (Минимум):</h4>
+                                <div class="grid grid-cols-2 gap-3 text-xs text-slate-400">
+                                    <div>ОС: <span class="text-slate-300 font-medium">Windows 10/11 (64-bit)</span></div>
+                                    <div>ОЗУ: <span class="text-slate-300 font-medium">16 GB RAM</span></div>
+                                    <div>ЦП: <span class="text-slate-300 font-medium">Intel Core i5-8400 / AMD Ryzen 5 1600</span></div>
+                                    <div>Видеокарта: <span class="text-slate-300 font-medium">GTX 1060 / RX 580</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Покупка -->
+                        <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <span class="text-slate-400 text-xs block mb-1">Официальная сублицензия</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-2xl font-black text-white">${discountedPrice} ₽</span>
+                                    ${game.discount > 0 ? `
+                                        <span class="text-xs text-slate-400 line-through">${game.price} ₽</span>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3 w-full sm:w-auto">
+                                ${isOutOfStock ? `
+                                    <span class="w-full sm:w-auto bg-red-600/10 border border-red-600/30 text-red-500 font-extrabold text-sm px-6 py-3.5 rounded-xl text-center uppercase">Сообщить о поступлении</span>
+                                ` : `
+                                    <button onclick="directPurchase(${game.id})" class="flex-1 sm:flex-initial bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm px-6 py-3.5 rounded-xl shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                        <i class="fa-solid fa-bolt"></i> Купить сейчас
+                                    </button>
+                                    <button onclick="addToCart(${game.id})" class="flex-1 sm:flex-initial bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-all">
+                                        ${inCart ? 'Уже в корзине' : 'Добавить в корзину'}
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Иконки игровых платформ
+        function getPlatformIcon(plat) {
+            const p = plat.toLowerCase();
+            if (p.includes('steam')) return '<i class="fa-brands fa-steam"></i>';
+            if (p.includes('epic')) return '<i class="fa-solid fa-gamepad"></i>';
+            if (p.includes('playstation')) return '<i class="fa-brands fa-playstation"></i>';
+            if (p.includes('xbox')) return '<i class="fa-brands fa-xbox"></i>';
+            return '<i class="fa-solid fa-key"></i>';
+        }
+
+        // Управление КОРЗИНОЙ
+        function addToCart(gameId) {
+            const game = state.games.find(g => g.id === gameId);
+            if (!game) return;
+
+            const isOutOfStock = !state.warehouse[game.id] || state.warehouse[game.id].length === 0;
+            if (isOutOfStock) {
+                showToast("К сожалению, данный товар временно отсутствует на складе.", true);
+                return;
+            }
+
+            if (state.cart.some(item => item.id === gameId)) {
+                showToast("Эта игра уже добавлена в вашу корзину.", false);
+                return;
+            }
+
+            state.cart.push(game);
+            saveStateToStorage();
+            updateCartBadge();
+            applyFilters();
+            
+            showToast(`Игра "${game.title}" добавлена в корзину!`);
+        }
+
+        function removeFromCart(gameId) {
+            state.cart = state.cart.filter(item => item.id !== gameId);
+            saveStateToStorage();
+            updateCartBadge();
+            renderCart();
+            applyFilters();
+            showToast("Товар удален из корзины.");
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            if (state.cart.length > 0) {
+                badge.textContent = state.cart.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // Рендер корзины
+        function renderCart() {
+            const container = document.getElementById('cart-container');
+            const emptyBlock = document.getElementById('cart-empty');
+
+            if (state.cart.length === 0) {
+                container.classList.add('hidden');
+                emptyBlock.classList.remove('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            emptyBlock.classList.add('hidden');
+
+            let total = 0;
+            const itemsHtml = state.cart.map(game => {
+                const price = Math.round(game.price * (1 - game.discount / 100));
+                total += price;
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <img src="${game.image}" alt="${game.title}" class="w-16 h-16 object-cover rounded-xl border border-slate-800">
+                            <div>
+                                <h4 class="text-sm font-extrabold text-white">${game.title}</h4>
+                                <span class="text-[10px] bg-slate-950 px-2 py-0.5 rounded text-slate-400 uppercase mt-1 inline-block">${game.platform}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 border-slate-800 pt-3 sm:pt-0">
+                            <div class="text-right">
+                                <span class="text-xs text-slate-400 block">Цена:</span>
+                                <span class="text-sm font-black text-white">${price} ₽</span>
+                            </div>
+                            <button onclick="removeFromCart(${game.id})" class="text-slate-500 hover:text-red-500 p-2 text-xs transition-colors" title="Удалить">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="space-y-3">
+                    ${itemsHtml}
+                </div>
+
+                <!-- Блок оформления заказа -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-400 font-medium">Итого товаров в заказе:</span>
+                        <span class="text-sm text-white font-bold">${state.cart.length} шт.</span>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-800 pt-3">
+                        <span class="text-base text-slate-200 font-extrabold">Сумма к оплате:</span>
+                        <span class="text-xl font-black text-blue-400">${total} ₽</span>
+                    </div>
+
+                    <!-- Форма почты (критично для доставки ключа) -->
+                    <div class="space-y-1.5 pt-3">
+                        <label class="block text-xs text-slate-400 font-semibold uppercase">E-mail для моментальной отправки ключа:</label>
+                        <input type="email" id="checkout-email" placeholder="example@mail.ru" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm p-3.5 rounded-xl focus:outline-none focus:border-blue-500">
+                        <p class="text-[10px] text-slate-500 leading-normal">Пожалуйста, убедитесь в правильности ввода. На указанную почту система автоматически отправит зашифрованный ключ активации.</p>
+                    </div>
+
+                    <button onclick="startSecureCheckout()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm py-4 rounded-xl transition-all shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i> Перейти к оплате через ЮKassa
+                    </button>
+                </div>
+            `;
+        }
+
+        // Покупка сразу по клику
+        function directPurchase(gameId) {
+            const game = state.games.find(g => g.id === gameId);
+            if (!game) return;
+
+            const isOutOfStock = !state.warehouse[game.id] || state.warehouse[game.id].length === 0;
+            if (isOutOfStock) {
+                showToast("Данная игра отсутствует на складе.", true);
+                return;
+            }
+
+            if (!state.cart.some(item => item.id === gameId)) {
+                state.cart.push(game);
+                saveStateToStorage();
+                updateCartBadge();
+            }
+
+            switchTab('cart');
+        }
+
+        // Процесс оплаты (Чекаут)
+        function startSecureCheckout() {
+            const emailInput = document.getElementById('checkout-email');
+            const email = emailInput.value.trim();
+
+            if (!email || !validateEmail(email)) {
+                showToast("Пожалуйста, введите корректный адрес электронной почты.", true);
+                emailInput.focus();
+                return;
+            }
+
+            // Рассчитываем сумму
+            let total = 0;
+            state.cart.forEach(game => {
+                total += Math.round(game.price * (1 - game.discount / 100));
+            });
+
+            // Открываем модальное окно ЮKassa
+            document.getElementById('pay-modal-total').textContent = `${total} ₽`;
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        // Имитация асинхронной транзакции банка (обработка Secure Callback)
+        function processSecurePayment() {
+            const cardNum = document.getElementById('pay-card-number').value.replace(/\s+/g, '');
+            const cardExp = document.getElementById('pay-card-expiry').value;
+            const cardCvc = document.getElementById('pay-card-cvc').value;
+
+            if (cardNum.length < 16 || cardExp.length < 5 || cardCvc.length < 3) {
+                showToast("Пожалуйста, заполните реквизиты карты для тестовой оплаты.", true);
+                return;
+            }
+
+            // Анимация отправки транзакции
+            const btn = document.getElementById('btn-pay-action');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Соединение со шлюзом ЮKassa...';
+
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Проведение транзакции...';
+                
+                setTimeout(() => {
+                    // Возвращаем кнопку в исходное состояние
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    
+                    // Успешный платеж - запускаем выдачу товара
+                    executeInstantDelivery();
+
+                }, 1500);
+            }, 1200);
+        }
+
+        // МГНОВЕННАЯ ВЫДАЧА КЛЮЧЕЙ (Instant Delivery Module)
+        function executeInstantDelivery() {
+            closePaymentModal();
+
+            const invoiceContainer = document.getElementById('invoice-keys-container');
+            invoiceContainer.innerHTML = '';
+
+            let orderRevenue = 0;
+            let deliveredItems = [];
+
+            // Для каждой игры в корзине извлекаем 1 ключ со склада
+            state.cart.forEach(game => {
+                const gamePrice = Math.round(game.price * (1 - game.discount / 100));
+                orderRevenue += gamePrice;
+
+                // Извлечение ключа
+                let keysInWarehouse = state.warehouse[game.id] || [];
+                let issuedKey = "";
+
+                if (keysInWarehouse.length > 0) {
+                    // Метод сдвига - вырезаем первый свободный ключ из массива
+                    issuedKey = keysInWarehouse.shift(); 
+                } else {
+                    // Резервный автогенератор, если ключи кончились во время сессии
+                    issuedKey = `AUTO-${game.platform.toUpperCase().substring(0,3)}-${Math.random().toString(36).substring(2,10).toUpperCase()}-${Math.random().toString(36).substring(2,10).toUpperCase()}`;
+                }
+
+                state.warehouse[game.id] = keysInWarehouse;
+
+                // Запись покупки в Библиотеку пользователя
+                const purchase = {
+                    id: game.id,
+                    title: game.title,
+                    platform: game.platform,
+                    image: game.image,
+                    pricePaid: gamePrice,
+                    key: issuedKey,
+                    date: new Date().toLocaleDateString('ru-RU')
+                };
+                state.library.push(purchase);
+                deliveredItems.push(purchase);
+            });
+
+            // Обновляем KPI
+            state.kpi.revenue += orderRevenue;
+            state.kpi.orders += 1;
+
+            // Очищаем корзину
+            state.cart = [];
+
+            // Сохраняем новое состояние в хранилище
+            saveStateToStorage();
+            updateCartBadge();
+            updateKPIs();
+
+            // Генерируем блоки ключей для модального окна чека
+            invoiceContainer.innerHTML = deliveredItems.map(item => `
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <img src="${item.image}" class="w-10 h-10 object-cover rounded-lg">
+                        <div>
+                            <span class="text-xs font-bold text-white block line-clamp-1">${item.title}</span>
+                            <span class="text-[9px] text-blue-400 font-bold uppercase">${item.platform}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <input type="text" readonly value="${item.key}" id="invoice-key-val-${item.id}" class="bg-slate-900 border border-slate-800 text-xs text-green-400 font-mono p-2 rounded-lg text-center w-full md:w-48 font-bold focus:outline-none">
+                        <button onclick="copyToClipboard('${item.key}')" class="bg-slate-800 hover:bg-slate-700 text-white p-2 rounded-lg text-xs transition-colors" title="Скопировать ключ">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Показываем окно успешного чека
+            document.getElementById('invoice-modal').classList.remove('hidden');
+        }
+
+        // Метод копирования (Исключены асинхронные ошибки iFrame)
+        function copyToClipboard(text) {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            showToast("Ключ успешно скопирован в буфер обмена!");
+        }
+
+        function closeInvoiceAndRedirect() {
+            document.getElementById('invoice-modal').classList.add('hidden');
+            switchTab('library');
+        }
+
+        // Рендер цифровой библиотеки покупателя
+        function renderLibrary() {
+            const grid = document.getElementById('library-grid');
+            const emptyBlock = document.getElementById('library-empty');
+            const libCountBadge = document.getElementById('library-count');
+
+            if (state.library.length > 0) {
+                libCountBadge.textContent = state.library.length;
+                libCountBadge.classList.remove('hidden');
+            } else {
+                libCountBadge.classList.add('hidden');
+            }
+
+            if (state.library.length === 0) {
+                grid.classList.add('hidden');
+                emptyBlock.classList.remove('hidden');
+                return;
+            }
+
+            grid.classList.remove('hidden');
+            emptyBlock.classList.add('hidden');
+
+            // Сортировка по дате (последние покупки вверху)
+            const sortedLib = [...state.library].reverse();
+
+            grid.innerHTML = sortedLib.map(item => `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <img src="${item.image}" alt="${item.title}" class="w-14 h-14 object-cover rounded-xl border border-slate-800">
+                        <div>
+                            <span class="text-[10px] text-blue-500 font-extrabold uppercase leading-none">${item.platform}</span>
+                            <h4 class="text-sm font-extrabold text-white mt-1 leading-tight line-clamp-1">${item.title}</h4>
+                            <span class="text-[9px] text-slate-500 block mt-1">Оплачено: ${item.pricePaid} ₽ • ${item.date}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-slate-950 border border-slate-800 text-[11px] font-mono text-green-400 font-black px-3 py-2 rounded-lg select-all">
+                            ${item.key}
+                        </span>
+                        <button onclick="copyToClipboard('${item.key}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-2 rounded-lg text-xs transition-colors">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Управление АДМИНИСТРАТИВНОЙ консолью
+        function updateKPIs() {
+            document.getElementById('kpi-revenue').textContent = `${state.kpi.revenue} ₽`;
+            document.getElementById('kpi-orders').textContent = state.kpi.orders;
+            document.getElementById('kpi-games').textContent = state.games.length;
+
+            // Расчет общего запаса ключей
+            let totalKeys = 0;
+            Object.values(state.warehouse).forEach(arr => {
+                totalKeys += arr.length;
+            });
+            document.getElementById('kpi-keys').textContent = totalKeys;
+        }
+
+        function renderAdmin() {
+            updateKPIs();
+
+            // Заполняем выпадающий список выбора игр для пополнения ключей
+            const gameSelect = document.getElementById('admin-key-game-id');
+            gameSelect.innerHTML = state.games.map(g => `<option value="${g.id}">${g.title} (${g.platform})</option>`).join('');
+
+            // Рендерим таблицу ассортимента
+            const tbody = document.getElementById('admin-games-list-body');
+            tbody.innerHTML = state.games.map(game => {
+                const keyCount = state.warehouse[game.id] ? state.warehouse[game.id].length : 0;
+                return `
+                    <tr class="hover:bg-slate-950/40">
+                        <td class="py-3 px-2 flex items-center gap-2 font-bold text-white">
+                            <img src="${game.image}" class="w-8 h-8 object-cover rounded">
+                            <span class="line-clamp-1">${game.title}</span>
+                        </td>
+                        <td class="py-3 px-2">
+                            <span class="bg-slate-950 text-slate-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-slate-800 uppercase">${game.platform}</span>
+                            <span class="text-slate-500 block text-[10px] mt-1">${game.genre}</span>
+                        </td>
+                        <td class="py-3 px-2">
+                            <input type="number" id="adm-price-${game.id}" value="${game.price}" onchange="changeGamePriceFromAdmin(${game.id})" class="w-16 bg-slate-950 border border-slate-800 text-slate-200 text-xs p-1 rounded text-center focus:outline-none">
+                            <span class="text-[9px] text-slate-500 block mt-1">Скидка: ${game.discount}%</span>
+                        </td>
+                        <td class="py-3 px-2 font-extrabold ${keyCount > 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${keyCount} шт.
+                        </td>
+                        <td class="py-3 px-2 text-center">
+                            <button onclick="deleteGameFromCatalog(${game.id})" class="text-slate-500 hover:text-red-400 text-xs p-1.5 transition-colors" title="Удалить из каталога">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Пополнение склада ключей из админки
+        function addKeysToWarehouse() {
+            const gameId = parseInt(document.getElementById('admin-key-game-id').value);
+            const textarea = document.getElementById('admin-key-list');
+            const lines = textarea.value.trim().split('\n');
+
+            if (!gameId) {
+                showToast("Пожалуйста, создайте или выберите игру сначала.", true);
+                return;
+            }
+
+            const validKeys = lines.map(k => k.trim()).filter(k => k.length > 0);
+
+            if (validKeys.length === 0) {
+                showToast("Пожалуйста, введите хотя бы один буквенно-цифровой ключ.", true);
+                return;
+            }
+
+            if (!state.warehouse[gameId]) {
+                state.warehouse[gameId] = [];
+            }
+
+            // Пакетный пуш ключей в складскую БД
+            state.warehouse[gameId].push(...validKeys);
+            saveStateToStorage();
+            textarea.value = '';
+
+            renderAdmin();
+            applyFilters();
+            showToast(`Успешно добавлено ${validKeys.length} ключей на склад!`);
+        }
+
+        // Добавление новой игры
+        function createNewGameInCatalog() {
+            const title = document.getElementById('admin-game-title').value.trim();
+            const platform = document.getElementById('admin-game-platform').value;
+            const genre = document.getElementById('admin-game-genre').value;
+            const price = parseFloat(document.getElementById('admin-game-price').value);
+            const discount = parseInt(document.getElementById('admin-game-discount').value) || 0;
+            const imageInput = document.getElementById('admin-game-image').value.trim();
+            const desc = document.getElementById('admin-game-desc').value.trim();
+
+            if (!title || isNaN(price) || price <= 0) {
+                showToast("Заполните обязательные поля: Название и корректная Цена.", true);
+                return;
+            }
+
+            const newId = state.games.length > 0 ? Math.max(...state.games.map(g => g.id)) + 1 : 1;
+            const image = imageInput || "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400";
+
+            const newGame = {
+                id: newId,
+                title: title,
+                platform: platform,
+                genre: genre,
+                price: price,
+                discount: discount,
+                rating: 4.5,
+                popularity: 10,
+                image: image,
+                description: desc || "Информативное и подробное описание игры появится в ближайшее время."
+            };
+
+            state.games.push(newGame);
+            state.warehouse[newId] = []; // Склад пустой при создании
+
+            saveStateToStorage();
+
+            // Сброс полей формы
+            document.getElementById('admin-game-title').value = '';
+            document.getElementById('admin-game-price').value = '';
+            document.getElementById('admin-game-discount').value = '0';
+            document.getElementById('admin-game-image').value = '';
+            document.getElementById('admin-game-desc').value = '';
+
+            renderAdmin();
+            applyFilters();
+            renderFilters();
+            showToast(`Игра "${title}" успешно внесена в каталог!`);
+        }
+
+        // Изменение цены в реальном времени из админ-таблицы
+        function changeGamePriceFromAdmin(gameId) {
+            const input = document.getElementById(`adm-price-${gameId}`);
+            const newPrice = parseFloat(input.value);
+
+            if (isNaN(newPrice) || newPrice <= 0) {
+                showToast("Введите корректное числовое значение цены.", true);
+                return;
+            }
+
+            const idx = state.games.findIndex(g => g.id === gameId);
+            if (idx !== -1) {
+                state.games[idx].price = newPrice;
+                saveStateToStorage();
+                renderAdmin();
+                applyFilters();
+                showToast("Стоимость товара в каталоге обновлена.");
+            }
+        }
+
+        // Удаление игры из админки
+        function deleteGameFromCatalog(gameId) {
+            state.games = state.games.filter(g => g.id !== gameId);
+            delete state.warehouse[gameId]; // Очищаем склад по ней
+            
+            saveStateToStorage();
+            renderAdmin();
+            applyFilters();
+            renderFilters();
+            showToast("Товар удален из каталога.");
+        }
+
+        // Плавный менеджер всплывающих уведомлений (Toast)
+        function showToast(message, isError = false) {
+            const wrapper = document.getElementById('toast-wrapper');
+            const toast = document.createElement('div');
+            
+            // Настройка стилей уведомления
+            toast.className = `flex items-center gap-3 p-4 rounded-xl shadow-xl text-xs font-semibold text-white pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 ${isError ? 'bg-red-600 border border-red-500/25' : 'bg-slate-900 border border-slate-800'}`;
+            toast.innerHTML = `
+                <span class="${isError ? 'text-white' : 'text-blue-500'} text-sm">
+                    <i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-info'}"></i>
+                </span>
+                <span>${message}</span>
+            `;
+
+            wrapper.appendChild(toast);
+
+            // Показываем плавно
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+            }, 10);
+
+            // Удаляем через 3 секунды
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
