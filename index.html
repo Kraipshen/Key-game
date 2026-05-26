@@ -35,7 +35,7 @@
 
     <!-- ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
     <nav class="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 shadow-lg">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
             <!-- Логотип -->
             <a href="#" onclick="switchTab('catalog')" class="flex items-center gap-2 group">
                 <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
@@ -58,8 +58,8 @@
                 </button>
             </div>
 
-            <!-- Разделы навигации -->
-            <div class="flex items-center gap-3 sm:gap-6">
+            <!-- Разделы навигации и Аккаунт -->
+            <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
                 <button onclick="switchTab('catalog')" id="nav-catalog" class="text-sm font-medium text-blue-400 hover:text-white transition-colors py-2 flex items-center gap-2">
                     <i class="fa-solid fa-store"></i> Магазин
                 </button>
@@ -71,9 +71,19 @@
                     <i class="fa-solid fa-cart-shopping"></i> Корзина
                     <span id="cart-badge" class="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
                 </button>
-                <button onclick="switchTab('admin')" id="nav-admin" class="text-sm font-medium text-slate-500 hover:text-red-400 transition-colors py-1.5 px-3 bg-slate-900 rounded-lg border border-slate-800 flex items-center gap-1.5">
+                
+                <!-- Защищенная кнопка Админа (отображается только для роли admin) -->
+                <button onclick="switchTab('admin')" id="nav-admin" class="hidden text-sm font-medium text-red-400 hover:text-red-300 transition-colors py-1.5 px-3 bg-red-950/20 rounded-lg border border-red-900/50 flex items-center gap-1.5 animate-pulse">
                     <i class="fa-solid fa-user-gear"></i> Админ
                 </button>
+
+                <!-- Вертикальный разделитель -->
+                <div class="h-6 w-[1px] bg-slate-800 hidden sm:block"></div>
+
+                <!-- Профиль / Авторизация -->
+                <div id="auth-nav-container">
+                    <!-- Заполняется динамически через JS (Войти / Профиль) -->
+                </div>
             </div>
         </div>
     </nav>
@@ -222,8 +232,8 @@
             <div id="library-empty" class="text-center py-16 bg-slate-900/50 border border-slate-800 rounded-2xl">
                 <i class="fa-solid fa-folder-open text-4xl text-slate-700 mb-3"></i>
                 <h3 class="text-base font-bold text-slate-300">В вашей библиотеке пусто</h3>
-                <p class="text-slate-500 text-xs mt-1">После совершения покупки все ключи навсегда привязываются к вашему аккаунту и появляются здесь.</p>
-                <button onclick="switchTab('catalog')" class="mt-4 bg-slate-800 hover:bg-slate-700 text-xs text-white px-4 py-2.5 rounded-lg transition-all">Приобрести игры</button>
+                <p id="library-empty-desc" class="text-slate-500 text-xs mt-1">После совершения покупки все ключи навсегда привязываются к вашему аккаунту и появляются здесь.</p>
+                <button onclick="promptAuthOrCatalog()" id="library-empty-btn" class="mt-4 bg-slate-800 hover:bg-slate-700 text-xs text-white px-4 py-2.5 rounded-lg transition-all">Приобрести игры</button>
             </div>
         </section>
 
@@ -369,6 +379,53 @@
         </section>
 
     </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО: АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <!-- Вкладки окна -->
+            <div class="flex border-b border-slate-800">
+                <button onclick="switchAuthMode('login')" id="btn-auth-tab-login" class="flex-1 py-4 text-center font-bold text-sm text-blue-400 border-b-2 border-blue-500">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> Вход
+                </button>
+                <button onclick="switchAuthMode('register')" id="btn-auth-tab-register" class="flex-1 py-4 text-center font-bold text-sm text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-user-plus mr-2"></i> Регистрация
+                </button>
+                <button onclick="closeAuthModal()" class="px-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Контент формы -->
+            <div class="p-6 space-y-4">
+                <!-- Описание для Входа / Регистрации -->
+                <p id="auth-form-tip" class="text-xs text-slate-400">Введите свои данные для входа в учетную запись.</p>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Имя пользователя (Логин):</label>
+                        <div class="relative">
+                            <input type="text" id="auth-username" placeholder="Логин" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm p-3 rounded-xl focus:outline-none focus:border-blue-500 pl-10">
+                            <span class="absolute left-3.5 top-3.5 text-slate-500"><i class="fa-solid fa-user"></i></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Пароль:</label>
+                        <div class="relative">
+                            <input type="password" id="auth-password" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm p-3 rounded-xl focus:outline-none focus:border-blue-500 pl-10">
+                            <span class="absolute left-3.5 top-3.5 text-slate-500"><i class="fa-solid fa-lock"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="auth-error-msg" class="text-xs text-red-500 hidden bg-red-500/10 p-2.5 rounded-lg border border-red-500/20">
+                    <!-- Место под ошибку -->
+                </div>
+
+                <button onclick="handleAuthSubmit()" id="btn-auth-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-3.5 rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                    Войти в аккаунт
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ИНТЕРАКТИВНОЕ ОКНО ПЛАТЕЖНОГО ШЛЮЗА (ИМИТАЦИЯ ЮKASSA / SECURE PAY) -->
     <div id="payment-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
@@ -581,17 +638,26 @@
             6: ["ELDEN-STEAM-00SS0-TTTT1", "ELDEN-STEAM-11UU1-VVVV2"]
         };
 
+        // Дефолтные пользователи (администратор и тестовый пользователь)
+        const DEFAULT_USERS = [
+            { username: "admin", password: "admin", role: "admin" },
+            { username: "user", password: "user", role: "user" }
+        ];
+
         // Состояние приложения (State)
         let state = {
             games: [],
             warehouse: {},
             cart: [],
             library: [],
+            users: [],
+            currentUser: null, // Объект авторизованного пользователя
             kpi: {
                 revenue: 0,
                 orders: 0
             },
             currentTab: 'catalog',
+            authMode: 'login', // login | register
             filters: {
                 platform: 'all',
                 genre: 'all',
@@ -608,6 +674,7 @@
             applyFilters();
             updateKPIs();
             updateCartBadge();
+            renderAuthNav();
         };
 
         // Загрузка состояния из localStorage
@@ -617,12 +684,16 @@
             const savedCart = localStorage.getItem('games_store_cart');
             const savedLibrary = localStorage.getItem('games_store_library');
             const savedKPI = localStorage.getItem('games_store_kpi');
+            const savedUsers = localStorage.getItem('games_store_users');
+            const savedCurrentUser = localStorage.getItem('games_store_current_user');
 
             state.games = savedGames ? JSON.parse(savedGames) : [...INITIAL_GAMES];
             state.warehouse = savedWarehouse ? JSON.parse(savedWarehouse) : {...INITIAL_WAREHOUSE};
             state.cart = savedCart ? JSON.parse(savedCart) : [];
             state.library = savedLibrary ? JSON.parse(savedLibrary) : [];
             state.kpi = savedKPI ? JSON.parse(savedKPI) : { revenue: 0, orders: 0 };
+            state.users = savedUsers ? JSON.parse(savedUsers) : [...DEFAULT_USERS];
+            state.currentUser = savedCurrentUser ? JSON.parse(savedCurrentUser) : null;
         }
 
         // Сохранение текущего состояния в localStorage
@@ -632,6 +703,8 @@
             localStorage.setItem('games_store_cart', JSON.stringify(state.cart));
             localStorage.setItem('games_store_library', JSON.stringify(state.library));
             localStorage.setItem('games_store_kpi', JSON.stringify(state.kpi));
+            localStorage.setItem('games_store_users', JSON.stringify(state.users));
+            localStorage.setItem('games_store_current_user', JSON.stringify(state.currentUser));
         }
 
         // Очистка данных
@@ -642,11 +715,22 @@
             applyFilters();
             updateKPIs();
             updateCartBadge();
+            renderAuthNav();
+            switchTab('catalog');
             showToast("База данных успешно сброшена к дефолтному состоянию!");
         }
 
-        // Функция переключения вкладок
+        // Функция переключения вкладок с проверкой прав доступа
         function switchTab(tabId) {
+            // Защита админ-панели
+            if (tabId === 'admin') {
+                if (!state.currentUser || state.currentUser.role !== 'admin') {
+                    showToast("Доступ запрещен. Требуются права Администратора!", true);
+                    openAuthModal('login');
+                    return;
+                }
+            }
+
             state.currentTab = tabId;
             
             // Настройка видимости секций
@@ -667,7 +751,7 @@
                     if (n === tabId) {
                         btn.className = "text-sm font-bold text-blue-400 border-b-2 border-blue-500 py-2 flex items-center gap-2";
                     } else if (n === 'admin') {
-                        btn.className = "text-sm font-medium text-slate-500 hover:text-red-400 transition-colors py-1.5 px-3 bg-slate-900 rounded-lg border border-slate-800 flex items-center gap-1.5";
+                        btn.className = "text-sm font-medium text-red-400 hover:text-red-300 transition-colors py-1.5 px-3 bg-red-950/20 rounded-lg border border-red-900/50 flex items-center gap-1.5 animate-pulse";
                     } else {
                         btn.className = "text-sm font-medium text-slate-400 hover:text-white transition-colors py-2 flex items-center gap-2 relative";
                     }
@@ -981,7 +1065,7 @@
             }
         }
 
-        // Рендер корзины
+        // Рендер корзины (БЕЗ запроса почты)
         function renderCart() {
             const container = document.getElementById('cart-container');
             const emptyBlock = document.getElementById('cart-empty');
@@ -1038,11 +1122,13 @@
                         <span class="text-xl font-black text-blue-400">${total} ₽</span>
                     </div>
 
-                    <!-- Форма почты (критично для доставки ключа) -->
-                    <div class="space-y-1.5 pt-3">
-                        <label class="block text-xs text-slate-400 font-semibold uppercase">E-mail для моментальной отправки ключа:</label>
-                        <input type="email" id="checkout-email" placeholder="example@mail.ru" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm p-3.5 rounded-xl focus:outline-none focus:border-blue-500">
-                        <p class="text-[10px] text-slate-500 leading-normal">Пожалуйста, убедитесь в правильности ввода. На указанную почту система автоматически отправит зашифрованный ключ активации.</p>
+                    <!-- Инструкционное примечание вместо формы e-mail -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/60 flex items-start gap-3 mt-3">
+                        <span class="text-blue-500 text-sm mt-0.5"><i class="fa-solid fa-circle-info"></i></span>
+                        <div class="text-xs text-slate-400 leading-relaxed">
+                            <span class="font-bold text-white block mb-0.5">Мгновенное получение:</span>
+                            Ключи будут привязаны непосредственно к вашему профилю и сразу же отобразятся в разделе <span class="text-blue-400 font-bold">«Моя Библиотека»</span> после успешной тестовой оплаты.
+                        </div>
                     </div>
 
                     <button onclick="startSecureCheckout()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm py-4 rounded-xl transition-all shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2">
@@ -1072,14 +1158,12 @@
             switchTab('cart');
         }
 
-        // Процесс оплаты (Чекаут)
+        // Процесс оплаты (Чекаут с обязательной авторизацией)
         function startSecureCheckout() {
-            const emailInput = document.getElementById('checkout-email');
-            const email = emailInput.value.trim();
-
-            if (!email || !validateEmail(email)) {
-                showToast("Пожалуйста, введите корректный адрес электронной почты.", true);
-                emailInput.focus();
+            // Если пользователь не вошел — прерываем чекаут и просим авторизацию
+            if (!state.currentUser) {
+                showToast("Для оформления покупки необходимо войти или зарегистрироваться!", true);
+                openAuthModal('login');
                 return;
             }
 
@@ -1094,16 +1178,11 @@
             document.getElementById('payment-modal').classList.remove('hidden');
         }
 
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
-        }
-
         function closePaymentModal() {
             document.getElementById('payment-modal').classList.add('hidden');
         }
 
-        // Имитация асинхронной транзакции банка (обработка Secure Callback)
+        // Имитация асинхронной транзакции банка
         function processSecurePayment() {
             const cardNum = document.getElementById('pay-card-number').value.replace(/\s+/g, '');
             const cardExp = document.getElementById('pay-card-expiry').value;
@@ -1164,9 +1243,10 @@
 
                 state.warehouse[game.id] = keysInWarehouse;
 
-                // Запись покупки в Библиотеку пользователя
+                // Запись покупки в общую базу с привязкой к текущему logged-in юзеру
                 const purchase = {
                     id: game.id,
+                    username: state.currentUser.username, // Привязываем к активной учетной записи
                     title: game.title,
                     platform: game.platform,
                     image: game.image,
@@ -1213,7 +1293,7 @@
             document.getElementById('invoice-modal').classList.remove('hidden');
         }
 
-        // Метод копирования (Исключены асинхронные ошибки iFrame)
+        // Метод копирования в буфер
         function copyToClipboard(text) {
             const tempInput = document.createElement("input");
             tempInput.value = text;
@@ -1229,22 +1309,41 @@
             switchTab('library');
         }
 
-        // Рендер цифровой библиотеки покупателя
+        // Рендер цифровой библиотеки (ТОЛЬКО ключи текущего вошедшего пользователя)
         function renderLibrary() {
             const grid = document.getElementById('library-grid');
             const emptyBlock = document.getElementById('library-empty');
             const libCountBadge = document.getElementById('library-count');
+            const emptyDesc = document.getElementById('library-empty-desc');
+            const emptyBtn = document.getElementById('library-empty-btn');
 
-            if (state.library.length > 0) {
-                libCountBadge.textContent = state.library.length;
+            // Если не авторизован - показываем заглушку с кнопкой Входа
+            if (!state.currentUser) {
+                libCountBadge.classList.add('hidden');
+                grid.classList.add('hidden');
+                emptyBlock.classList.remove('hidden');
+                emptyDesc.textContent = "Для доступа к персональной цифровой библиотеке и купленным ключам необходимо войти в систему.";
+                emptyBtn.innerHTML = "<i class='fa-solid fa-right-to-bracket mr-1'></i> Войти в систему";
+                emptyBtn.onclick = function() { openAuthModal('login'); };
+                return;
+            }
+
+            // Фильтруем общую базу покупок по имени вошедшего пользователя
+            const userPurchases = state.library.filter(item => item.username === state.currentUser.username);
+
+            if (userPurchases.length > 0) {
+                libCountBadge.textContent = userPurchases.length;
                 libCountBadge.classList.remove('hidden');
             } else {
                 libCountBadge.classList.add('hidden');
             }
 
-            if (state.library.length === 0) {
+            if (userPurchases.length === 0) {
                 grid.classList.add('hidden');
                 emptyBlock.classList.remove('hidden');
+                emptyDesc.textContent = "Вы пока не приобрели ни одного игрового ключа. Совершите покупку, и она отобразится здесь.";
+                emptyBtn.innerHTML = "В каталог товаров";
+                emptyBtn.onclick = function() { switchTab('catalog'); };
                 return;
             }
 
@@ -1252,7 +1351,7 @@
             emptyBlock.classList.add('hidden');
 
             // Сортировка по дате (последние покупки вверху)
-            const sortedLib = [...state.library].reverse();
+            const sortedLib = [...userPurchases].reverse();
 
             grid.innerHTML = sortedLib.map(item => `
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4">
@@ -1276,6 +1375,170 @@
             `).join('');
         }
 
+        // Помощник для перехода в каталог или авторизацию
+        function promptAuthOrCatalog() {
+            if (!state.currentUser) {
+                openAuthModal('login');
+            } else {
+                switchTab('catalog');
+            }
+        }
+
+        // УПРАВЛЕНИЕ АВТОРИЗАЦИЕЙ (ПОЛЬЗОВАТЕЛИ И АДМИН)
+        function renderAuthNav() {
+            const container = document.getElementById('auth-nav-container');
+            const adminNavBtn = document.getElementById('nav-admin');
+
+            if (state.currentUser) {
+                // Если вошли
+                container.innerHTML = `
+                    <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5">
+                        <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-tag ${state.currentUser.role === 'admin' ? 'text-red-500' : 'text-blue-500'}"></i>
+                            ${state.currentUser.username}
+                        </span>
+                        <button onclick="logout()" class="text-xs text-slate-500 hover:text-red-400 font-bold transition-colors">Выйти</button>
+                    </div>
+                `;
+
+                // Показываем кнопку админки только если роль 'admin'
+                if (state.currentUser.role === 'admin') {
+                    adminNavBtn.classList.remove('hidden');
+                } else {
+                    adminNavBtn.classList.add('hidden');
+                }
+            } else {
+                // Если гости
+                container.innerHTML = `
+                    <button onclick="openAuthModal('login')" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-to-bracket"></i> Войти
+                    </button>
+                `;
+                adminNavBtn.classList.add('hidden');
+            }
+        }
+
+        function openAuthModal(mode = 'login') {
+            switchAuthMode(mode);
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('auth-username').value = '';
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-error-msg').classList.add('hidden');
+        }
+
+        function switchAuthMode(mode) {
+            state.authMode = mode;
+            const tabLogin = document.getElementById('btn-auth-tab-login');
+            const tabRegister = document.getElementById('btn-auth-tab-register');
+            const formTip = document.getElementById('auth-form-tip');
+            const submitBtn = document.getElementById('btn-auth-submit');
+            
+            document.getElementById('auth-error-msg').classList.add('hidden');
+
+            if (mode === 'login') {
+                tabLogin.className = "flex-1 py-4 text-center font-bold text-sm text-blue-400 border-b-2 border-blue-500";
+                tabRegister.className = "flex-1 py-4 text-center font-bold text-sm text-slate-400 hover:text-white transition-colors";
+                formTip.textContent = "Введите свои данные для входа в учетную запись.";
+                submitBtn.textContent = "Войти в аккаунт";
+            } else {
+                tabLogin.className = "flex-1 py-4 text-center font-bold text-sm text-slate-400 hover:text-white transition-colors";
+                tabRegister.className = "flex-1 py-4 text-center font-bold text-sm text-blue-400 border-b-2 border-blue-500";
+                formTip.textContent = "Зарегистрируйте аккаунт для сохранения ключей и моментального получения покупок.";
+                submitBtn.textContent = "Создать аккаунт";
+            }
+        }
+
+        function handleAuthSubmit() {
+            const usernameInput = document.getElementById('auth-username');
+            const passwordInput = document.getElementById('auth-password');
+            const errorBlock = document.getElementById('auth-error-msg');
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                errorBlock.textContent = "Заполните все поля!";
+                errorBlock.classList.remove('hidden');
+                return;
+            }
+
+            if (state.authMode === 'login') {
+                // Процесс авторизации
+                const matchedUser = state.users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+                
+                if (!matchedUser) {
+                    errorBlock.textContent = "Неверный логин или пароль!";
+                    errorBlock.classList.remove('hidden');
+                    return;
+                }
+
+                state.currentUser = matchedUser;
+                saveStateToStorage();
+                closeAuthModal();
+                renderAuthNav();
+                renderLibrary();
+                updateCartBadge();
+                showToast(`С возвращением, ${matchedUser.username}!`);
+
+                // Если авторизовался админ - перекидываем в консоль управления
+                if (matchedUser.role === 'admin') {
+                    switchTab('admin');
+                } else {
+                    switchTab('catalog');
+                }
+            } else {
+                // Процесс регистрации нового пользователя
+                const userExists = state.users.some(u => u.username.toLowerCase() === username.toLowerCase());
+                if (userExists) {
+                    errorBlock.textContent = "Это имя пользователя уже занято!";
+                    errorBlock.classList.remove('hidden');
+                    return;
+                }
+
+                // Запрет регистрации под именем admin в обход системы
+                if (username.toLowerCase() === 'admin') {
+                    errorBlock.textContent = "Логин 'admin' зарезервирован системой!";
+                    errorBlock.classList.remove('hidden');
+                    return;
+                }
+
+                const newUser = {
+                    username: username,
+                    password: password,
+                    role: "user"
+                };
+
+                state.users.push(newUser);
+                state.currentUser = newUser;
+                saveStateToStorage();
+                closeAuthModal();
+                renderAuthNav();
+                renderLibrary();
+                switchTab('catalog');
+                showToast(`Поздравляем с успешной регистрацией, ${username}!`);
+            }
+        }
+
+        function logout() {
+            const previousRole = state.currentUser ? state.currentUser.role : 'user';
+            state.currentUser = null;
+            saveStateToStorage();
+            renderAuthNav();
+            renderLibrary();
+            updateCartBadge();
+            showToast("Вы успешно вышли из аккаунта.");
+
+            // Если выходим из панели администрирования - возвращаем в каталог
+            if (previousRole === 'admin' || state.currentTab === 'admin') {
+                switchTab('catalog');
+            }
+        }
+
+
         // Управление АДМИНИСТРАТИВНОЙ консолью
         function updateKPIs() {
             document.getElementById('kpi-revenue').textContent = `${state.kpi.revenue} ₽`;
@@ -1291,6 +1554,12 @@
         }
 
         function renderAdmin() {
+            // Двойная проверка безопасности для админки
+            if (!state.currentUser || state.currentUser.role !== 'admin') {
+                switchTab('catalog');
+                return;
+            }
+
             updateKPIs();
 
             // Заполняем выпадающий список выбора игр для пополнения ключей
